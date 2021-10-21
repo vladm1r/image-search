@@ -1,14 +1,51 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 
 import useImageSearch from './services/useImageSearch';
+// import useIntersectionObserver from './services/useIntersectionObserver';
+import loader from './assets/preloader.gif';
 
 import './app.scss';
-
 
 const App = () => {
 	const [query, setQuery] = useState('');
 	const [tempQuery, setTempQuery] = useState('');
 	const [pageNumber, setPageNumber] = useState(1);
+	const [lastElement, setLastElement] = useState(null);
+
+	const {
+		images,
+		loading,
+		hasMore,
+		error
+	} = useImageSearch(query, pageNumber);
+
+	const observer = useRef(
+		new IntersectionObserver(
+			(entries) => {
+				const first = entries[0];
+				if (first.isIntersecting && !loading && hasMore) {
+					// console.log(loading, hasMore);
+					setPageNumber((prevNum) => prevNum + 1);
+				}
+			})
+	);
+
+	useEffect(() => {
+
+
+		const currentElement = lastElement;
+		const currentObserver = observer.current;
+
+		if (currentElement) {
+			currentObserver.observe(currentElement);
+		}
+
+		return () => {
+			if (currentElement) {
+				currentObserver.unobserve(currentElement);
+			}
+		};
+	}, [lastElement, loading, hasMore]);
 
 	function handleInput(e) {
 		setTempQuery(e.target.value);
@@ -19,15 +56,40 @@ const App = () => {
 		setPageNumber(1);
 	}
 
-	useImageSearch(query, pageNumber);
 
 	return (
 		<div className="app">
-			<input type="text" className="search-input" onChange={handleInput} />
-			<button className="search-input-btn" onClick={handleSearch}>поиск</button>
-			<div className="result-container">
 
+			<div className="search-input-container">
+				<input type="text" className="search-input"
+					onChange={handleInput}
+					onKeyPress={(e) => e.key === "Enter" && handleSearch()}
+					placeholder="e. g. cat" />
+				<button className="search-input-btn" onClick={handleSearch}>search</button>
 			</div>
+
+			<div className="result-container">
+				{images.map((item, index) => {
+					if (images.length === index + 1) {
+						return (
+							<div key={item} className="image-container" ref={setLastElement}>
+								<img src={item} alt="" />
+							</div>
+						)
+					} else {
+						return (
+							<div key={item} className="image-container">
+								<img src={item} alt="" />
+							</div>
+						)
+					}
+				})}
+			</div>
+			{loading &&
+				<div className="loader-container">
+					<img src={loader} alt="" />
+				</div>
+			}
 		</div>
 	)
 }
