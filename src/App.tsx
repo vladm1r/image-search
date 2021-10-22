@@ -23,15 +23,14 @@ const App = () => {
 		new IntersectionObserver(
 			(entries) => {
 				const first = entries[0];
-				if (first.isIntersecting && !loading && hasMore) {
-					// console.log(loading, hasMore);
+				if (first.isIntersecting) {
 					setPageNumber((prevNum) => prevNum + 1);
 				}
 			})
 	);
 
 	useEffect(() => {
-
+		if (loading || !hasMore) return;
 
 		const currentElement = lastElement;
 		const currentObserver = observer.current;
@@ -88,6 +87,11 @@ const App = () => {
 			{loading &&
 				<div className="loader-container">
 					<img src={loader} alt="" />
+				</div>
+			}
+			{error &&
+				<div className="error-container">
+					Somethig went wrong :(
 				</div>
 			}
 		</div>

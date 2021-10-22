@@ -10,7 +10,7 @@ const useImageSearch = (query: string, pageNumber: number) => {
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState(false);
 	const [images, setImages] = useState([]);
-	const [hasMore, setHasMore] = useState(true);
+	const [hasMore, setHasMore] = useState(false);
 
 	useEffect(() => {
 		setImages([]);
@@ -30,9 +30,7 @@ const useImageSearch = (query: string, pageNumber: number) => {
 				setImages(prevImages => {
 					return [...prevImages, ...result.response.results.map(item => item.urls.regular)]
 				})
-				console.log(result.response.results.length > 0);
-				setHasMore(result.response.results.length > 0);
-				console.log(hasMore);
+				setHasMore(images.length < result.response.total);
 				setLoading(false);
 			})
 			.catch(() => {
